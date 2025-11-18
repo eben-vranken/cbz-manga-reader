@@ -19,6 +19,7 @@ const MangaReader = () => {
   const clientRef = useRef(null);
   const viewerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const bridgeUrl = '/api/bridge';
 
   // Initialize WebTorrent client
   useEffect(() => {
@@ -132,10 +133,17 @@ const MangaReader = () => {
 
     // --- CHANGE START: List of public WebSocket trackers ---
     const announceList = [
+      // Existing trackers
       'wss://tracker.openwebtorrent.com',
       'wss://tracker.btorrent.xyz',
       'wss://tracker.webtorrent.dev',
-      'wss://tracker.files.fm:7073/announce'
+      'wss://tracker.files.fm:7073/announce',
+
+      // New additions (more coverage)
+      'wss://ws.bittorrent.com/tracker',
+      'wss://d.webtorrent.dev/tracker',
+      'wss://tracker.sloppy.zone/announce'
+      // You can search for more public wss:// trackers and add them here
     ];
     // -----------------------------------------------------
 
@@ -144,12 +152,12 @@ const MangaReader = () => {
       clientRef.current.add(torrentFile, { announce: announceList }, (torrent) => {
 
         // Trigger the bridge
-        // console.log('Asking bridge to help with:', torrent.infoHash);
-        // fetch('/api/bridge', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ magnetURI: torrent.magnetURI })
-        // }).catch(err => console.error('Bridge error:', err));
+        console.log('Asking bridge to help with:', torrent.infoHash);
+        fetch(bridgeUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ magnetURI: torrent.magnetURI })
+        }).catch(err => console.error('Bridge error:', err));
 
         setTorrent(torrent);
         setStatus(`Loading: ${torrent.name}`);
